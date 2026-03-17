@@ -35,13 +35,55 @@ class AssetDataGrid extends DataGrid
      */
     public function prepareQueryBuilder()
     {
-        $queryBuilder = DB::table('dam_directories')
-            ->distinct()
-            ->join('dam_asset_directory', 'dam_directories.id', '=', 'dam_asset_directory.directory_id')
+        // $queryBuilder = DB::table('dam_directories')
+        //     ->distinct()
+        //     ->join('dam_asset_directory', 'dam_directories.id', '=', 'dam_asset_directory.directory_id')
+        //     ->join('dam_assets', 'dam_asset_directory.asset_id', '=', 'dam_assets.id')
+        //     ->leftJoin('dam_asset_properties', 'dam_assets.id', '=', 'dam_asset_properties.dam_asset_id')
+        //     ->leftJoin('dam_asset_tag', 'dam_assets.id', '=', 'dam_asset_tag.asset_id')
+        //     ->leftJoin('dam_tags', 'dam_asset_tag.tag_id', '=', 'dam_tags.id')
+        //     ->select(
+        //         'dam_directories.id as directory_id',
+        //         'dam_assets.id',
+        //         'dam_assets.file_name',
+        //         'dam_assets.file_type',
+        //         'dam_assets.file_size',
+        //         'dam_assets.mime_type',
+        //         'dam_assets.extension',
+        //         'dam_assets.path',
+        //         'dam_assets.created_at',
+        //         'dam_assets.updated_at',
+        //         'dam_asset_directory.asset_id as directory_asset_id',
+        //     )
+        //     ->groupBy('dam_assets.id');
+
+        $grammar = DB::rawQueryGrammar();
+
+        $tagsSubQuery = DB::table('dam_asset_tag')
+            ->join('dam_tags', 'dam_asset_tag.tag_id', '=', 'dam_tags.id')
+            ->select(
+                'dam_asset_tag.asset_id',
+                DB::raw($grammar->groupConcat('dam_tags.name', 'tag', 'dam_tags.name', true))
+            )
+            ->groupBy('dam_asset_tag.asset_id');
+
+        $propertiesSubQuery = DB::table('dam_asset_properties')
+            ->select(
+                'dam_asset_properties.dam_asset_id',
+                DB::raw($grammar->groupConcat('dam_asset_properties.name', 'property_name', 'dam_asset_properties.name', true)),
+                DB::raw($grammar->groupConcat('dam_asset_properties.value', 'property_value', 'dam_asset_properties.name'))
+            )
+            ->groupBy('dam_asset_properties.dam_asset_id');
+
+        $queryBuilder = DB::table('dam_asset_directory')
+            ->join('dam_directories', 'dam_directories.id', '=', 'dam_asset_directory.directory_id')
             ->join('dam_assets', 'dam_asset_directory.asset_id', '=', 'dam_assets.id')
-            ->leftJoin('dam_asset_properties', 'dam_assets.id', '=', 'dam_asset_properties.dam_asset_id')
-            ->leftJoin('dam_asset_tag', 'dam_assets.id', '=', 'dam_asset_tag.asset_id')
-            ->leftJoin('dam_tags', 'dam_asset_tag.tag_id', '=', 'dam_tags.id')
+            ->leftJoinSub($tagsSubQuery, 'asset_tags', function ($join) {
+                $join->on('asset_tags.asset_id', '=', 'dam_assets.id');
+            })
+            ->leftJoinSub($propertiesSubQuery, 'asset_properties', function ($join) {
+                $join->on('asset_properties.dam_asset_id', '=', 'dam_assets.id');
+            })
             ->select(
                 'dam_directories.id as directory_id',
                 'dam_assets.id',
@@ -54,8 +96,10 @@ class AssetDataGrid extends DataGrid
                 'dam_assets.created_at',
                 'dam_assets.updated_at',
                 'dam_asset_directory.asset_id as directory_asset_id',
-            )
-            ->groupBy('dam_assets.id');
+                'asset_tags.tag',
+                'asset_properties.property_name',
+                'asset_properties.property_value',
+            );
 
         $this->addFilter('id', 'dam_assets.id');
         $this->addFilter('tag', 'dam_tags.name');
