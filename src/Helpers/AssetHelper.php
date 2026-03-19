@@ -61,8 +61,13 @@ class AssetHelper
      */
     public static function getDisplayFileName(string $fileName): string
     {
-        if (strlen($fileName) > 29) {
-            $fileName = substr($fileName, 0, 20).'...'.substr($fileName, strrpos($fileName, '.'));
+        if (mb_strlen($fileName) > 29) {
+            $extensionPosition = strrpos($fileName, '.');
+            $extension = $extensionPosition !== false
+                ? mb_substr($fileName, $extensionPosition)
+                : '';
+
+            $fileName = mb_substr($fileName, 0, 20).'...'.$extension;
         }
 
         return $fileName;
