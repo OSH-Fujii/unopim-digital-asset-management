@@ -211,7 +211,55 @@ class AssetDataGrid extends DataGrid
 
         $formattedData['meta']['per_page_options'] = [50, 100, 150, 200, 250];
 
-        return $formattedData;
+        return $this->sanitizeUtf8Array($formattedData);
+    }
+
+    /**
+     * Ensure datagrid responses always contain valid UTF-8 before JSON encoding.
+     */
+    protected function sanitizeUtf8Array(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            $data[$key] = $this->sanitizeUtf8Value($value);
+        }
+
+        return $data;
+    }
+
+    protected function sanitizeUtf8Value(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            return $this->normalizeUtf8String($value);
+        }
+
+        if (is_array($value)) {
+            return $this->sanitizeUtf8Array($value);
+        }
+
+        if (is_object($value)) {
+            foreach ($value as $property => $propertyValue) {
+                $value->{$property} = $this->sanitizeUtf8Value($propertyValue);
+            }
+
+            return $value;
+        }
+
+        return $value;
+    }
+
+    protected function normalizeUtf8String(string $value): string
+    {
+        if ($value === '' || mb_check_encoding($value, 'UTF-8')) {
+            return $value;
+        }
+
+        $normalized = @mb_convert_encoding($value, 'UTF-8', 'UTF-8, SJIS-win, SJIS, CP932, EUC-JP, ISO-2022-JP, ASCII');
+
+        if (! is_string($normalized) || $normalized === '') {
+            $normalized = @iconv('UTF-8', 'UTF-8//IGNORE', $value) ?: '';
+        }
+
+        return $normalized;
     }
 
     /**
