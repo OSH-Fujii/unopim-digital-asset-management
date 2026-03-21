@@ -48,7 +48,7 @@ class Importer extends ProductImporter
     public function prepareAttributeValues(array $rowData, array &$attributeValues): void
     {
         $familyAttributes = $this->getProductTypeFamilyAttributes($rowData['type'], $rowData[self::ATTRIBUTE_FAMILY_CODE]);
-        $imageDirPath = $this->import->images_directory_path;
+        $imageDirPath = $this->import->images_directory_path ?? '';
 
         foreach ($rowData as $attributeCode => $value) {
             if (is_null($value)) {
