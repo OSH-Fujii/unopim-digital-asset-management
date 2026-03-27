@@ -377,7 +377,7 @@
                 },
 
                 download() {
-                    let downloadLink = `{{ route('admin.dam.assets.download', '') }}/${this.asset.id}`;
+                    let downloadLink = `{{ url(config('app.admin_url').'/dam/assets/download') }}/${this.asset.id}`;
 
                     window.open(downloadLink, '_self');
                 },
@@ -393,7 +393,7 @@
                 setPreviewUrl() {
                     let filePath = encodeURIComponent(this.asset.storage_file_path);
 
-                    this.asset.previewUrl = `{{ route('admin.dam.file.preview', '') }}?path=${filePath}`;
+                    this.asset.previewUrl = `{{ route('admin.dam.file.preview') }}?path=${filePath}`;
                 },
             }
         });

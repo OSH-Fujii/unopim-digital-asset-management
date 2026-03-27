@@ -618,7 +618,7 @@
                             }
                         })();
 
-                        let downloadLink = `{{ route('admin.dam.assets.custom_download', '') }}/${this.selectedItem.id}?format=${format}`;
+                        let downloadLink = `{{ url(config('app.admin_url').'/dam/assets/custom-download') }}/${this.selectedItem.id}?format=${format}`;
 
                         this.selectedItemExtension = this.selectedItem?.extension;
 
@@ -645,7 +645,7 @@
                         const formatWidth = params.width;
 
                         let downloadLink =
-                            `{{ route('admin.dam.assets.custom_download', '') }}/${this.selectedItem.id}?format=${format}&height=${formatHeight}&width=${formatWidth}`;
+                            `{{ url(config('app.admin_url').'/dam/assets/custom-download') }}/${this.selectedItem.id}?format=${format}&height=${formatHeight}&width=${formatWidth}`;
 
                         this.selectedItemExtension = this.selectedItem?.extension;
                         this.selectedItemWidth = this.selectedItem?.embeddedMetaInfo?.Width;
@@ -656,7 +656,7 @@
                         window.open(downloadLink, '_self');
                     },
                     downloadItem() {
-                        let downloadLink = `{{ route('admin.dam.assets.download', '') }}/${this.selectedItem.id}`;
+                        let downloadLink = `{{ url(config('app.admin_url').'/dam/assets/download') }}/${this.selectedItem.id}`;
 
                         window.open(downloadLink, '_self');
                     },
@@ -895,7 +895,7 @@
                         this.$emitter.emit('open-delete-modal', {
                             agree: () => {
                                 this.$axios.delete(
-                                        `{{ route('admin.dam.assets.destroy', '') }}/${this.selectedItem.id}`
+                                        `{{ url(config('app.admin_url').'/dam/assets/destroy') }}/${this.selectedItem.id}`
                                     )
                                     .then(response => {
                                         this.$emitter.emit('add-flash', {
